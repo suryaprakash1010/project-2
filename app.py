@@ -470,7 +470,7 @@ def forecast_rows(base_rows, dates, manual_values=None):
             {
                 "Date": pd.Timestamp(d),
                 "Day": pd.Timestamp(d).day_name(),
-                "Week": int(pd.Timestamp(d).isocalendar().week),
+                "Week": ((pd.Timestamp(d).dayofyear - 1) // 7) + 1,,
                 "Month": pd.Timestamp(d).month_name(),
                 "Year": pd.Timestamp(d).year,
                 "Forecast_Units": round(float(np.sum(pred)), 2)
