@@ -1,9 +1,17 @@
-import streamlit as st
-import pandas as pd
-import numpy as np
-import joblib
-from datetime import timedelta
+# ============================================================
+# SALES FORECASTING STREAMLIT APP
+# Product-Based + Store-Based Forecast
+# Uses: xgboost_sales_model_artifacts.pkl
+# ============================================================
+
 import calendar
+from datetime import date
+
+import holidays
+import joblib
+import numpy as np
+import pandas as pd
+import streamlit as st
 
 
 # ============================================================
@@ -11,1399 +19,893 @@ import calendar
 # ============================================================
 
 st.set_page_config(
-    page_title="AI Sales Forecasting",
-    page_icon="📈",
-    layout="wide"
+    page_title="Sales Forecasting",
+    page_icon="🔮",
+    layout="wide",
+    initial_sidebar_state="collapsed",
 )
 
 
 # ============================================================
-# MULTI COLOUR DESIGN
+# MODERN UI DESIGN
 # ============================================================
 
-st.markdown("""
-<style>
-
-/* MAIN BACKGROUND */
-
-.stApp {
-    background:
-        radial-gradient(
-            circle at 10% 20%,
-            rgba(186,104,200,0.35),
-            transparent 30%
-        ),
-        radial-gradient(
-            circle at 90% 20%,
-            rgba(66,165,245,0.35),
-            transparent 30%
-        ),
-        radial-gradient(
-            circle at 20% 85%,
-            rgba(38,198,218,0.30),
-            transparent 30%
-        ),
-        radial-gradient(
-            circle at 85% 85%,
-            rgba(255,183,77,0.30),
-            transparent 30%
-        ),
-        linear-gradient(
-            135deg,
-            #f3e5f5,
-            #e3f2fd,
-            #e0f7fa,
-            #fff8e1
-        );
-
-    background-attachment: fixed;
-}
-
-
-/* MAIN CONTAINER */
-
-.block-container {
-
-    background: rgba(255,255,255,0.55);
-
-    backdrop-filter: blur(12px);
-
-    border-radius: 25px;
-
-    padding: 2rem;
-
-    margin-top: 25px;
-
-    margin-bottom: 25px;
-
-    box-shadow:
-        0px 10px 35px
-        rgba(31,38,135,0.15);
-}
-
-
-/* SIDEBAR */
-
-[data-testid="stSidebar"] {
-
-    background:
-        linear-gradient(
-            180deg,
-            #512da8,
-            #1976d2,
-            #00897b
-        );
-}
-
-
-[data-testid="stSidebar"] label,
-[data-testid="stSidebar"] h1,
-[data-testid="stSidebar"] h2,
-[data-testid="stSidebar"] h3,
-[data-testid="stSidebar"] p {
-
-    color: white !important;
-}
-
-
-/* MAIN TITLE */
-
-.main-title {
-
-    background:
-        linear-gradient(
-            90deg,
-            #7b1fa2,
-            #3949ab,
-            #039be5,
-            #00897b
-        );
-
-    color: white;
-
-    padding: 25px;
-
-    border-radius: 22px;
-
-    text-align: center;
-
-    font-size: 40px;
-
-    font-weight: 800;
-
-    box-shadow:
-        0px 8px 25px
-        rgba(63,81,181,0.30);
-}
-
-
-/* SUB TITLE */
-
-.sub-title {
-
-    text-align: center;
-
-    color: #3949ab;
-
-    font-size: 18px;
-
-    font-weight: 600;
-
-    margin-top: 12px;
-
-    margin-bottom: 30px;
-}
-
-
-/* BUTTON */
-
-div.stButton > button {
-
-    width: 100%;
-
-    background:
-        linear-gradient(
-            90deg,
-            #7b1fa2,
-            #1976d2,
-            #00a896,
-            #ff9800
-        );
-
-    color: white;
-
-    border: none;
-
-    border-radius: 15px;
-
-    padding: 14px;
-
-    font-size: 20px;
-
-    font-weight: bold;
-
-    box-shadow:
-        0px 7px 18px
-        rgba(0,0,0,0.18);
-}
-
-
-div.stButton > button:hover {
-
-    transform: translateY(-2px);
-
-    color: white;
-
-    border: none;
-}
-
-
-/* METRIC CARDS */
-
-[data-testid="stMetric"] {
-
-    background: rgba(255,255,255,0.85);
-
-    padding: 20px;
-
-    border-radius: 18px;
-
-    border-left: 6px solid #7b1fa2;
-
-    box-shadow:
-        0px 6px 20px
-        rgba(0,0,0,0.12);
-}
-
-
-[data-testid="stMetricLabel"] {
-
-    font-weight: bold;
-
-    color: #3949ab;
-}
-
-
-[data-testid="stMetricValue"] {
-
-    color: #00897b;
-}
-
-
-/* RESULT CARD */
-
-.result-card {
-
-    background:
-        linear-gradient(
-            135deg,
-            #7b1fa2,
-            #1976d2,
-            #009688
-        );
-
-    color: white;
-
-    padding: 30px;
-
-    border-radius: 22px;
-
-    text-align: center;
-
-    margin-top: 20px;
-
-    margin-bottom: 20px;
-
-    box-shadow:
-        0px 8px 25px
-        rgba(0,0,0,0.20);
-}
-
-
-.result-number {
-
-    color: #ffeb3b;
-
-    font-size: 45px;
-
-    font-weight: bold;
-}
-
-
-/* TABLE */
-
-[data-testid="stDataFrame"] {
-
-    background: white;
-
-    border-radius: 18px;
-
-    padding: 10px;
-
-    box-shadow:
-        0px 6px 20px
-        rgba(0,0,0,0.10);
-}
-
-</style>
-""", unsafe_allow_html=True)
-
-
-# ============================================================
-# TITLE
-# ============================================================
 
 st.markdown(
     """
-    <div class="main-title">
-        📈 AI SALES FORECASTING SYSTEM
-    </div>
+    <style>
+    .stApp {
+        background: #f5f8fc;
+        color: #1f2937;
+    }
+
+    .block-container {
+        max-width: 1450px;
+        padding-top: 1.5rem;
+        padding-bottom: 3rem;
+    }
+
+    .hero {
+        background: linear-gradient(135deg, #0f4c81, #1f6fb2);
+        color: white;
+        padding: 28px 32px;
+        border-radius: 20px;
+        margin-bottom: 24px;
+        box-shadow: 0 10px 30px rgba(15, 76, 129, 0.18);
+    }
+
+    .hero h1 {
+        margin: 0;
+        font-size: 2.2rem;
+        font-weight: 800;
+        letter-spacing: -0.02em;
+    }
+
+    .hero p {
+        margin: 8px 0 0 0;
+        color: rgba(255,255,255,0.92);
+        font-size: 0.98rem;
+    }
+
+    .info-card {
+        background: #ffffff;
+        border: 1px solid #e5e7eb;
+        border-radius: 16px;
+        padding: 18px;
+        min-height: 105px;
+        box-shadow: 0 6px 18px rgba(15, 23, 42, 0.06);
+    }
+
+    .info-label {
+        color: #64748b;
+        font-size: 0.78rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    .info-value {
+        color: #0f172a;
+        font-size: 1.6rem;
+        font-weight: 800;
+        margin-top: 6px;
+    }
+
+    .info-help {
+        color: #64748b;
+        font-size: 0.82rem;
+        margin-top: 4px;
+    }
+
+    .section {
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 18px;
+        padding: 18px 20px;
+        margin-top: 14px;
+        margin-bottom: 16px;
+        box-shadow: 0 5px 16px rgba(15, 23, 42, 0.05);
+    }
+
+    .section-title {
+        color: #0f172a;
+        font-size: 1.2rem;
+        font-weight: 800;
+        margin-bottom: 3px;
+    }
+
+    .section-sub {
+        color: #64748b;
+        font-size: 0.88rem;
+    }
+
+    div[data-testid="stMetric"] {
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        padding: 14px;
+        border-radius: 14px;
+        box-shadow: 0 4px 14px rgba(15,23,42,0.04);
+    }
+
+    .stButton > button {
+        width: 100%;
+        min-height: 3.05rem;
+        border: 0;
+        border-radius: 10px;
+        background: #1769aa;
+        color: white;
+        font-weight: 800;
+        font-size: 0.98rem;
+        box-shadow: 0 5px 14px rgba(23, 105, 170, 0.18);
+    }
+
+    .stButton > button:hover {
+        background: #0f5a96;
+        color: white;
+        border: 0;
+    }
+
+    .stDownloadButton > button {
+        width: 100%;
+        border-radius: 10px;
+        font-weight: 700;
+        border: 1px solid #1769aa;
+        color: #1769aa;
+        background: white;
+    }
+
+    div[data-baseweb="select"] > div,
+    div[data-testid="stNumberInput"] input,
+    div[data-testid="stDateInput"] input {
+        background: #ffffff !important;
+        border-radius: 10px !important;
+    }
+
+    div[data-testid="stTabs"] button {
+        font-weight: 800;
+        font-size: 1rem;
+        color: #334155;
+    }
+
+    h1, h2, h3, h4 {
+        color: #0f172a;
+    }
+
+    .stCaption, small {
+        color: #64748b !important;
+    }
+    </style>
     """,
-    unsafe_allow_html=True
+    unsafe_allow_html=True,
 )
 
-st.markdown(
-    """
-    <div class="sub-title">
-        Smart Future Sales Prediction Dashboard
-    </div>
-    """,
-    unsafe_allow_html=True
-)
 
 
 # ============================================================
-# LOAD MODEL
+# LOAD MODEL ARTIFACTS
 # ============================================================
+
+@st.cache_resource
+def load_model_artifacts():
+    return joblib.load("xgboost_sales_model_artifacts.pkl")
+
 
 try:
-
-    artifacts = joblib.load(
-        "xgboost_sales_model_artifacts.pkl"
-    )
-
-    model = artifacts["xgb_model"]
-
-    label_encoders = artifacts["label_encoders"]
-
-    model_features = artifacts["model_features"]
-
-    historical_data = artifacts["historical_data"].copy()
-
-except Exception as e:
-
+    artifacts = load_model_artifacts()
+except FileNotFoundError:
     st.error(
-        f"Model loading error: {e}"
+        "❌ `xgboost_sales_model_artifacts.pkl` file not found. "
+        "Keep the PKL file in the same folder as `app.py`."
     )
-
+    st.stop()
+except Exception as e:
+    st.error(f"❌ Model loading error: {e}")
     st.stop()
 
 
-# ============================================================
-# DATE CONVERSION
-# ============================================================
+model = artifacts["xgb_model"]
+label_encoders = artifacts.get("label_encoders", {})
+model_features = artifacts["model_features"]
+history = artifacts["historical_data"].copy()
 
-historical_data["Date"] = pd.to_datetime(
-    historical_data["Date"]
-)
-
-historical_data = (
-    historical_data
-    .sort_values("Date")
-    .reset_index(drop=True)
-)
+history["Date"] = pd.to_datetime(history["Date"], errors="coerce")
+history = history.dropna(subset=["Date"]).sort_values("Date").reset_index(drop=True)
 
 
 # ============================================================
-# SIDEBAR
+# BASIC COLUMN HELPERS
 # ============================================================
 
-st.sidebar.header(
-    "⚙️ Forecast Settings"
-)
+def first_existing(columns):
+    for col in columns:
+        if col in history.columns:
+            return col
+    return None
+
+
+product_col = first_existing(["Product_Name", "Product_ID"])
+store_col = first_existing(["Store_Location", "Store_ID"])
+
+if product_col is None:
+    st.error("❌ Product column not found in saved historical data.")
+    st.stop()
+
+if store_col is None:
+    st.error("❌ Store column not found in saved historical data.")
+    st.stop()
+
+
+products = sorted(history[product_col].dropna().astype(str).unique().tolist())
+stores = sorted(history[store_col].dropna().astype(str).unique().tolist())
 
 
 # ============================================================
-# PRODUCT NAME
+# FEATURE PREPARATION
 # ============================================================
 
-if "Product_Name" in historical_data.columns:
+def apply_calendar_features(frame, forecast_date, holiday_override=None):
+    d = pd.Timestamp(forecast_date)
 
-    product_names = sorted(
-        historical_data[
-            "Product_Name"
-        ]
-        .dropna()
-        .astype(str)
-        .unique()
-    )
+    frame["Date"] = d
+    frame["Year"] = d.year
+    frame["Month"] = d.month_name()
+    frame["Day"] = d.day
+    frame["Day_of_Week"] = d.day_name()
+    frame["DayOfYear"] = d.dayofyear
+    frame["WeekOfYear"] = int(d.isocalendar().week)
+    frame["Quarter"] = f"Q{d.quarter}"
+    frame["Is_Weekend"] = int(d.dayofweek >= 5)
+    frame["Month_Number"] = d.month
+    frame["DayOfWeek_Number"] = d.dayofweek
 
-    selected_product_name = (
-        st.sidebar.selectbox(
-            "🛍️ Product Name",
-            product_names
+    season_map = {
+        12: "Winter", 1: "Winter", 2: "Winter",
+        3: "Spring", 4: "Spring", 5: "Spring",
+        6: "Summer", 7: "Summer", 8: "Summer",
+        9: "Autumn", 10: "Autumn", 11: "Autumn"
+    }
+    frame["Season"] = season_map[d.month]
+
+    india_holidays = holidays.country_holidays("IN", years=[d.year])
+    india_holidays[pd.Timestamp(d.year, 1, 1).date()] = "New Year"
+    detected_holiday = india_holidays.get(d.date())
+
+    if holiday_override is None:
+        is_holiday = bool(detected_holiday)
+    else:
+        is_holiday = bool(holiday_override)
+
+    frame["Holiday_Flag"] = int(is_holiday)
+
+    if is_holiday:
+        frame["Holiday_Name"] = str(detected_holiday) if detected_holiday else "Holiday"
+    else:
+        frame["Holiday_Name"] = "No Holiday"
+
+    return frame
+
+
+def apply_interaction_features(frame):
+    if "Price" in frame.columns and "Discount_Percentage" in frame.columns:
+        price = pd.to_numeric(frame["Price"], errors="coerce").fillna(0)
+        discount = pd.to_numeric(frame["Discount_Percentage"], errors="coerce").fillna(0)
+        frame["Pricing_Effect"] = price * discount
+        frame["Discounted_Price"] = price * (1 - discount / 100)
+
+    if "Marketing_Spend" in frame.columns and "Promotion_Flag" in frame.columns:
+        frame["Promotion_Effect"] = (
+            pd.to_numeric(frame["Marketing_Spend"], errors="coerce").fillna(0)
+            * pd.to_numeric(frame["Promotion_Flag"], errors="coerce").fillna(0)
         )
+
+    if "Stock_Availability" in frame.columns and "Price" in frame.columns:
+        frame["Inventory_Value"] = (
+            pd.to_numeric(frame["Stock_Availability"], errors="coerce").fillna(0)
+            * pd.to_numeric(frame["Price"], errors="coerce").fillna(0)
+        )
+
+    if "Promotion_Flag" in frame.columns and "Holiday_Flag" in frame.columns:
+        frame["Seasonal_Effect"] = (
+            pd.to_numeric(frame["Promotion_Flag"], errors="coerce").fillna(0)
+            * pd.to_numeric(frame["Holiday_Flag"], errors="coerce").fillna(0)
+        )
+
+    if "Price" in frame.columns and "Competitor_Price" in frame.columns:
+        frame["Price_Difference"] = (
+            pd.to_numeric(frame["Price"], errors="coerce").fillna(0)
+            - pd.to_numeric(frame["Competitor_Price"], errors="coerce").fillna(0)
+        )
+
+    return frame
+
+
+def safe_encode(frame):
+    encoded = frame.copy()
+
+    for col, encoder in label_encoders.items():
+        if col not in encoded.columns:
+            continue
+
+        values = encoded[col].astype(str)
+        known = set(encoder.classes_)
+        fallback = str(encoder.classes_[0])
+        values = values.where(values.isin(known), fallback)
+        encoded[col] = encoder.transform(values)
+
+    return encoded
+
+
+def prepare_input(frame):
+    x = frame.copy()
+    x = x.drop(
+        columns=["Units_Sold", "Revenue", "Row_ID", "Date"],
+        errors="ignore"
     )
 
-    product_data = historical_data[
-        historical_data[
-            "Product_Name"
-        ].astype(str)
-        ==
-        str(selected_product_name)
+    x = safe_encode(x)
+
+    hist_defaults = history.copy()
+    hist_defaults = hist_defaults.drop(
+        columns=["Units_Sold", "Revenue", "Row_ID", "Date"],
+        errors="ignore"
+    )
+    hist_defaults = safe_encode(hist_defaults)
+
+    for col in model_features:
+        if col not in x.columns:
+            if col in hist_defaults.columns:
+                default_value = pd.to_numeric(
+                    hist_defaults[col], errors="coerce"
+                ).median()
+
+                if pd.isna(default_value):
+                    mode = hist_defaults[col].mode()
+                    default_value = mode.iloc[0] if not mode.empty else 0
+
+                x[col] = default_value
+            else:
+                x[col] = 0
+
+    x = x[model_features]
+    x = x.replace([np.inf, -np.inf], np.nan)
+
+    for col in x.columns:
+        if x[col].isna().any():
+            numeric = pd.to_numeric(x[col], errors="coerce")
+            median = numeric.median()
+            x[col] = numeric.fillna(0 if pd.isna(median) else median)
+
+    return x
+
+
+def create_forecast_dates(start_date, horizon):
+    start = pd.Timestamp(start_date)
+
+    if horizon == "Particular Day":
+        return pd.DatetimeIndex([start])
+
+    if horizon == "1 Week":
+        return pd.date_range(start, periods=7, freq="D")
+
+    if horizon == "1 Month":
+        end = start + pd.DateOffset(months=1) - pd.Timedelta(days=1)
+        return pd.date_range(start, end, freq="D")
+
+    if horizon == "1 Year":
+        end = start + pd.DateOffset(years=1) - pd.Timedelta(days=1)
+        return pd.date_range(start, end, freq="D")
+
+    return pd.DatetimeIndex([start])
+
+
+def latest_row_for_product_store(product, store):
+    temp = history[
+        (history[product_col].astype(str) == str(product))
+        & (history[store_col].astype(str) == str(store))
     ].copy()
 
-else:
+    if temp.empty:
+        temp = history[
+            history[product_col].astype(str) == str(product)
+        ].copy()
 
-    selected_product_name = None
+    if temp.empty:
+        temp = history.tail(1).copy()
 
-    product_data = historical_data.copy()
+    return temp.sort_values("Date").tail(1).copy()
 
 
-# ============================================================
-# PRODUCT ID
-# ============================================================
+def latest_rows_for_store(store):
+    temp = history[
+        history[store_col].astype(str) == str(store)
+    ].copy()
 
-if "Product_ID" in product_data.columns:
+    if temp.empty:
+        return history.tail(1).copy()
 
-    product_ids = sorted(
-        product_data[
-            "Product_ID"
-        ]
-        .dropna()
-        .astype(str)
-        .unique()
-    )
+    entity_cols = [c for c in ["Product_ID", "Product_Name"] if c in temp.columns]
 
-    selected_product = (
-        st.sidebar.selectbox(
-            "🏷️ Product ID",
-            product_ids
+    if entity_cols:
+        temp = (
+            temp.sort_values("Date")
+            .groupby(entity_cols, dropna=False, as_index=False)
+            .tail(1)
         )
-    )
+    else:
+        temp = temp.sort_values("Date").tail(1)
 
-else:
+    return temp.copy()
 
-    selected_product = None
 
+def forecast_rows(base_rows, dates, manual_values=None):
+    output = []
 
-# ============================================================
-# STORE ID
-# ============================================================
+    for d in dates:
+        future = base_rows.copy()
 
-store_data = product_data.copy()
+        holiday_override = None
+        if manual_values is not None:
+            holiday_override = manual_values.get("Holiday_Flag")
 
-
-if selected_product is not None:
-
-    store_data = store_data[
-        store_data[
-            "Product_ID"
-        ].astype(str)
-        ==
-        str(selected_product)
-    ]
-
-
-if "Store_ID" in store_data.columns:
-
-    stores = sorted(
-        store_data[
-            "Store_ID"
-        ]
-        .dropna()
-        .astype(str)
-        .unique()
-    )
-
-    selected_store = (
-        st.sidebar.selectbox(
-            "🏪 Store",
-            stores
-        )
-    )
-
-else:
-
-    selected_store = None
-
-
-# ============================================================
-# IMPORTANT FEATURES
-# ============================================================
-
-st.sidebar.subheader(
-    "📊 Important Features"
-)
-
-
-price = st.sidebar.number_input(
-    "💰 Price",
-    min_value=0.0,
-    value=100.0,
-    step=10.0
-)
-
-
-discount = st.sidebar.number_input(
-    "🏷️ Discount %",
-    min_value=0.0,
-    max_value=100.0,
-    value=0.0
-)
-
-
-marketing_spend = (
-    st.sidebar.number_input(
-        "📢 Marketing Spend",
-        min_value=0.0,
-        value=0.0
-    )
-)
-
-
-promotion_flag = (
-    st.sidebar.selectbox(
-        "🎁 Promotion",
-        ["No", "Yes"]
-    )
-)
-
-
-promotion_flag = (
-    1
-    if promotion_flag == "Yes"
-    else 0
-)
-
-
-stock_availability = (
-    st.sidebar.number_input(
-        "📦 Stock Availability",
-        min_value=0,
-        value=100
-    )
-)
-
-
-competitor_price = (
-    st.sidebar.number_input(
-        "💵 Competitor Price",
-        min_value=0.0,
-        value=100.0
-    )
-)
-
-
-holiday_flag = (
-    st.sidebar.selectbox(
-        "🎉 Holiday",
-        ["No", "Yes"]
-    )
-)
-
-
-holiday_flag = (
-    1
-    if holiday_flag == "Yes"
-    else 0
-)
-
-
-# ============================================================
-# FORECAST TYPE
-# ============================================================
-
-st.subheader(
-    "🔮 Select Forecast Period"
-)
-
-
-forecast_type = st.selectbox(
-
-    "What do you want to forecast?",
-
-    [
-        "Next Week",
-        "Next Month",
-        "Particular Date",
-        "Next Year"
-    ]
-)
-
-
-# ============================================================
-# LAST DATASET DATE
-# ============================================================
-
-last_date = (
-    historical_data["Date"].max()
-)
-
-
-st.info(
-    "📅 Last available sales date: "
-    +
-    last_date.strftime(
-        "%d-%m-%Y"
-    )
-)
-
-
-# ============================================================
-# FORECAST DATES
-# ============================================================
-
-forecast_dates = None
-
-selected_date = None
-
-
-# NEXT WEEK
-
-if forecast_type == "Next Week":
-
-    forecast_dates = pd.date_range(
-
-        start=(
-            last_date
-            +
-            timedelta(days=1)
-        ),
-
-        periods=7,
-
-        freq="D"
-    )
-
-
-# NEXT MONTH
-
-elif forecast_type == "Next Month":
-
-    next_month_date = (
-        last_date
-        +
-        pd.DateOffset(months=1)
-    )
-
-    year = next_month_date.year
-
-    month = next_month_date.month
-
-    total_days = (
-        calendar.monthrange(
-            year,
-            month
-        )[1]
-    )
-
-    start_date = pd.Timestamp(
-        year=year,
-        month=month,
-        day=1
-    )
-
-    forecast_dates = pd.date_range(
-        start=start_date,
-        periods=total_days,
-        freq="D"
-    )
-
-
-# PARTICULAR DATE
-
-elif forecast_type == "Particular Date":
-
-    selected_date = st.date_input(
-
-        "📅 Choose Future Date",
-
-        min_value=(
-            last_date
-            +
-            timedelta(days=1)
-        ).date()
-    )
-
-    forecast_dates = (
-        pd.DatetimeIndex(
-            [
-                pd.Timestamp(
-                    selected_date
-                )
-            ]
-        )
-    )
-
-
-# NEXT YEAR
-
-elif forecast_type == "Next Year":
-
-    next_year = (
-        last_date.year + 1
-    )
-
-    start_date = pd.Timestamp(
-        year=next_year,
-        month=1,
-        day=1
-    )
-
-    end_date = pd.Timestamp(
-        year=next_year,
-        month=12,
-        day=31
-    )
-
-    forecast_dates = pd.date_range(
-        start=start_date,
-        end=end_date,
-        freq="D"
-    )
-
-
-# ============================================================
-# FORECAST BUTTON
-# ============================================================
-
-if st.button(
-    "🚀 FORECAST SALES",
-    use_container_width=True
-):
-
-
-    # ========================================================
-    # FILTER HISTORY
-    # ========================================================
-
-    history = historical_data.copy()
-
-
-    # Product Name
-
-    if selected_product_name is not None:
-
-        history = history[
-            history[
-                "Product_Name"
-            ].astype(str)
-            ==
-            str(selected_product_name)
-        ]
-
-
-    # Product ID
-
-    if selected_product is not None:
-
-        history = history[
-            history[
-                "Product_ID"
-            ].astype(str)
-            ==
-            str(selected_product)
-        ]
-
-
-    # Store
-
-    if selected_store is not None:
-
-        history = history[
-            history[
-                "Store_ID"
-            ].astype(str)
-            ==
-            str(selected_store)
-        ]
-
-
-    history = (
-        history
-        .sort_values("Date")
-        .reset_index(drop=True)
-    )
-
-
-    # ========================================================
-    # CHECK HISTORY
-    # ========================================================
-
-    if len(history) < 30:
-
-        st.error(
-            "Not enough previous sales history "
-            "for selected Product + Store."
+        future = apply_calendar_features(
+            future,
+            d,
+            holiday_override=holiday_override
         )
 
-        st.stop()
+        if manual_values:
+            for col, value in manual_values.items():
+                if col == "Holiday_Flag":
+                    continue
+                if col in future.columns:
+                    future[col] = value
 
+        future = apply_interaction_features(future)
+        x_future = prepare_input(future)
 
-    # ========================================================
-    # SALES HISTORY
-    # ========================================================
+        pred = model.predict(x_future)
+        pred = np.maximum(pred, 0)
 
-    sales_history = (
-        history[
-            "Units_Sold"
-        ]
-        .astype(float)
-        .tolist()
-    )
-
-
-    predictions = []
-
-
-    last_row = history.iloc[-1]
-
-
-    # ========================================================
-    # FUTURE PREDICTION LOOP
-    # ========================================================
-
-    for future_date in forecast_dates:
-
-        row = {}
-
-
-        # ====================================================
-        # PRODUCT INFORMATION
-        # ====================================================
-
-        if selected_product_name is not None:
-
-            row[
-                "Product_Name"
-            ] = selected_product_name
-
-
-        if selected_product is not None:
-
-            row[
-                "Product_ID"
-            ] = selected_product
-
-
-        if selected_store is not None:
-
-            row[
-                "Store_ID"
-            ] = selected_store
-
-
-        # ====================================================
-        # USER INPUT FEATURES
-        # ====================================================
-
-        row["Price"] = price
-
-        row[
-            "Discount_Percentage"
-        ] = discount
-
-        row[
-            "Marketing_Spend"
-        ] = marketing_spend
-
-        row[
-            "Promotion_Flag"
-        ] = promotion_flag
-
-        row[
-            "Stock_Availability"
-        ] = stock_availability
-
-        row[
-            "Competitor_Price"
-        ] = competitor_price
-
-        row[
-            "Holiday_Flag"
-        ] = holiday_flag
-
-
-        # ====================================================
-        # DATE FEATURES
-        # ====================================================
-
-        row["Year"] = (
-            future_date.year
+        output.append(
+            {
+                "Date": pd.Timestamp(d),
+                "Day": pd.Timestamp(d).day_name(),
+                "Week": int(pd.Timestamp(d).isocalendar().week),
+                "Month": pd.Timestamp(d).month_name(),
+                "Year": pd.Timestamp(d).year,
+                "Forecast_Units": round(float(np.sum(pred)), 2)
+            }
         )
 
-        row["Month_Number"] = (
-            future_date.month
-        )
+    return pd.DataFrame(output)
 
-        row["Day"] = (
-            future_date.day
-        )
 
-        row["DayOfYear"] = (
-            future_date.dayofyear
-        )
+def numeric_default(row, column, fallback=0.0):
+    if column not in row.columns:
+        return float(fallback)
 
-        row["WeekOfYear"] = int(
-            future_date
-            .isocalendar()
-            .week
-        )
+    val = pd.to_numeric(row[column], errors="coerce").iloc[0]
+    if pd.isna(val):
+        return float(fallback)
 
-        row[
-            "DayOfWeek_Number"
-        ] = future_date.dayofweek
+    return float(val)
 
 
-        # ====================================================
-        # COPY OTHER FEATURES FROM LAST RECORD
-        # ====================================================
+def show_results(result_df, title):
+    total = result_df["Forecast_Units"].sum()
+    avg = result_df["Forecast_Units"].mean()
+    max_row = result_df.loc[result_df["Forecast_Units"].idxmax()]
+    min_row = result_df.loc[result_df["Forecast_Units"].idxmin()]
 
-        for column in history.columns:
+    st.markdown(f"### 📊 {title}")
 
-            if (
-                column not in row
-                and
-                column not in [
-                    "Date",
-                    "Units_Sold",
-                    "Revenue",
-                    "Row_ID"
-                ]
-            ):
+    a, b, c, d = st.columns(4)
 
-                row[column] = (
-                    last_row[column]
-                )
-
-
-        # ====================================================
-        # UPDATE DATE CATEGORICAL FEATURES
-        # ====================================================
-
-        if "Day_of_Week" in row:
-
-            row[
-                "Day_of_Week"
-            ] = future_date.day_name()
-
-
-        if "Month" in row:
-
-            row[
-                "Month"
-            ] = future_date.month_name()
-
-
-        if "Quarter" in row:
-
-            row[
-                "Quarter"
-            ] = (
-                "Q"
-                +
-                str(
-                    future_date.quarter
-                )
-            )
-
-
-        if "Is_Weekend" in row:
-
-            row[
-                "Is_Weekend"
-            ] = (
-                1
-                if future_date.dayofweek >= 5
-                else 0
-            )
-
-
-        # ====================================================
-        # INTERACTION FEATURES
-        # ====================================================
-
-        row[
-            "Pricing_Effect"
-        ] = (
-            price
-            *
-            discount
-        )
-
-
-        row[
-            "Promotion_Effect"
-        ] = (
-            marketing_spend
-            *
-            promotion_flag
-        )
-
-
-        row[
-            "Inventory_Value"
-        ] = (
-            stock_availability
-            *
-            price
-        )
-
-
-        row[
-            "Seasonal_Effect"
-        ] = (
-            promotion_flag
-            *
-            holiday_flag
-        )
-
-
-        row[
-            "Price_Difference"
-        ] = (
-            price
-            -
-            competitor_price
-        )
-
-
-        row[
-            "Discounted_Price"
-        ] = (
-            price
-            *
-            (
-                1
-                -
-                discount / 100
-            )
-        )
-
-
-        # ====================================================
-        # SALES LAG FEATURES
-        # ====================================================
-
-        row[
-            "Sales_Lag_1"
-        ] = sales_history[-1]
-
-
-        row[
-            "Sales_Lag_2"
-        ] = sales_history[-2]
-
-
-        row[
-            "Sales_Lag_3"
-        ] = sales_history[-3]
-
-
-        row[
-            "Sales_Lag_7"
-        ] = sales_history[-7]
-
-
-        row[
-            "Sales_Lag_14"
-        ] = sales_history[-14]
-
-
-        row[
-            "Sales_Lag_30"
-        ] = sales_history[-30]
-
-
-        # ====================================================
-        # ROLLING FEATURES
-        # ====================================================
-
-        row[
-            "Sales_Rolling_Mean_3"
-        ] = np.mean(
-            sales_history[-3:]
-        )
-
-
-        row[
-            "Sales_Rolling_Mean_7"
-        ] = np.mean(
-            sales_history[-7:]
-        )
-
-
-        row[
-            "Sales_Rolling_Mean_14"
-        ] = np.mean(
-            sales_history[-14:]
-        )
-
-
-        row[
-            "Sales_Rolling_Mean_30"
-        ] = np.mean(
-            sales_history[-30:]
-        )
-
-
-        row[
-            "Sales_Rolling_Std_7"
-        ] = np.std(
-            sales_history[-7:]
-        )
-
-
-        # ====================================================
-        # SALES CHANGE FEATURES
-        # ====================================================
-
-        row[
-            "Sales_Change_1"
-        ] = (
-            sales_history[-1]
-            -
-            sales_history[-2]
-        )
-
-
-        row[
-            "Sales_Change_7"
-        ] = (
-            sales_history[-1]
-            -
-            sales_history[-7]
-        )
-
-
-        # ====================================================
-        # CREATE DATAFRAME
-        # ====================================================
-
-        future_df = pd.DataFrame(
-            [row]
-        )
-
-
-        # ====================================================
-        # ENCODING
-        # ====================================================
-
-        for (
-            column,
-            encoder
-        ) in label_encoders.items():
-
-            if column in future_df.columns:
-
-                value = str(
-                    future_df[
-                        column
-                    ].iloc[0]
-                )
-
-                if value in encoder.classes_:
-
-                    future_df[
-                        column
-                    ] = encoder.transform(
-                        [value]
-                    )
-
-                else:
-
-                    future_df[
-                        column
-                    ] = 0
-
-
-        # ====================================================
-        # ADD MISSING MODEL FEATURES
-        # ====================================================
-
-        for feature in model_features:
-
-            if feature not in future_df.columns:
-
-                future_df[
-                    feature
-                ] = 0
-
-
-        # ====================================================
-        # SAME FEATURE ORDER AS TRAINING
-        # ====================================================
-
-        future_df = future_df[
-            model_features
-        ]
-
-
-        # ====================================================
-        # CLEAN DATA
-        # ====================================================
-
-        future_df = (
-            future_df
-            .replace(
-                [np.inf, -np.inf],
-                np.nan
-            )
-            .fillna(0)
-        )
-
-
-        # ====================================================
-        # PREDICT
-        # ====================================================
-
-        prediction = (
-            model.predict(
-                future_df
-            )[0]
-        )
-
-
-        prediction = max(
-            0,
-            float(prediction)
-        )
-
-
-        predictions.append(
-            prediction
-        )
-
-
-        # Add prediction for next day's lag
-
-        sales_history.append(
-            prediction
-        )
-
-
-    # ========================================================
-    # RESULT
-    # ========================================================
-
-    result = pd.DataFrame({
-
-        "Date":
-            forecast_dates,
-
-        "Predicted_Sales":
-            predictions
-
-    })
-
-
-    result[
-        "Predicted_Sales"
-    ] = (
-        result[
-            "Predicted_Sales"
-        ]
-        .round()
-        .astype(int)
-    )
-
-
-    # ========================================================
-    # SUCCESS
-    # ========================================================
-
-    st.success(
-        "✅ Sales Forecast Completed!"
-    )
-
-
-    # ========================================================
-    # PARTICULAR DATE RESULT
-    # ========================================================
-
-    if forecast_type == "Particular Date":
-
-        predicted_sales = (
-            result[
-                "Predicted_Sales"
-            ].iloc[0]
-        )
-
-
+    with a:
         st.markdown(
             f"""
             <div class="result-card">
-
-                <h2 style="color:white;">
-                    🎯 Predicted Sales
-                </h2>
-
-                <div class="result-number">
-                    {predicted_sales} Units
-                </div>
-
-                <br>
-
-                🛍️ Product:
-                {selected_product_name}
-
-                <br>
-
-                🏷️ Product ID:
-                {selected_product}
-
-                <br>
-
-                🏪 Store:
-                {selected_store}
-
-                <br>
-
-                📅 Date:
-                {pd.Timestamp(selected_date).strftime("%d-%m-%Y")}
-
+                <div class="result-label">Total Forecast</div>
+                <div class="result-value">{total:,.0f}</div>
+                <div class="result-help">units</div>
             </div>
             """,
             unsafe_allow_html=True
         )
 
+    with b:
+        st.markdown(
+            f"""
+            <div class="result-card">
+                <div class="result-label">Daily Average</div>
+                <div class="result-value">{avg:,.1f}</div>
+                <div class="result-help">units per day</div>
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
 
-    # ========================================================
-    # WEEK / MONTH / YEAR RESULT
-    # ========================================================
+    with c:
+        st.markdown(
+            f"""
+            <div class="result-card">
+                <div class="result-label">Highest Day</div>
+                <div class="result-value">{max_row['Forecast_Units']:,.0f}</div>
+                <div class="result-help">{max_row['Date'].date()}</div>
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
 
-    else:
+    with d:
+        st.markdown(
+            f"""
+            <div class="result-card">
+                <div class="result-label">Lowest Day</div>
+                <div class="result-value">{min_row['Forecast_Units']:,.0f}</div>
+                <div class="result-help">{min_row['Date'].date()}</div>
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
 
-        total_sales = (
-            result[
-                "Predicted_Sales"
-            ].sum()
+    st.markdown("#### 📈 Forecast Trend")
+    st.line_chart(
+        result_df.set_index("Date")[["Forecast_Units"]],
+        height=360
+    )
+
+    if len(result_df) > 7:
+        monthly = (
+            result_df.assign(
+                Period=result_df["Date"].dt.strftime("%b %Y")
+            )
+            .groupby("Period", sort=False, as_index=False)["Forecast_Units"]
+            .sum()
+        )
+
+        st.markdown("#### 🗓️ Monthly Summary")
+        st.bar_chart(
+            monthly.set_index("Period")[["Forecast_Units"]],
+            height=300
+        )
+
+    display = result_df.copy()
+    display["Date"] = display["Date"].dt.date
+    display = display.rename(
+        columns={"Forecast_Units": "Forecast Units"}
+    )
+
+    st.markdown("#### 📋 Detailed Forecast")
+    st.dataframe(
+        display,
+        use_container_width=True,
+        hide_index=True
+    )
+
+    st.download_button(
+        "⬇️ Download Forecast CSV",
+        data=result_df.to_csv(index=False).encode("utf-8"),
+        file_name="sales_forecast.csv",
+        mime="text/csv"
+    )
+
+
+# ============================================================
+# HEADER
+# ============================================================
+
+st.markdown(
+    """
+    <div class="main-header">
+        <div class="main-title">🔮 Sales Forecasting</div>
+        <div class="main-subtitle">
+            Product-level and store-level forecasting using your trained XGBoost model.
+        </div>
+    </div>
+    """,
+    unsafe_allow_html=True
+)
+
+
+# ============================================================
+# COMBINED FORECAST DASHBOARD
+# ============================================================
+
+st.markdown(
+    """
+    <div class="section">
+        <div class="section-title">🔮 Combined Future Sales Forecast</div>
+        <div class="section-sub">
+            Product forecast and store forecast are available in one single form.
+        </div>
+    </div>
+    """,
+    unsafe_allow_html=True
+)
+
+forecast_type = st.radio(
+    "🎯 Forecast Type",
+    ["📦 Product Based", "🏪 Store Based"],
+    horizontal=True,
+    key="forecast_type"
+)
+
+common1, common2 = st.columns(2)
+
+with common1:
+    selected_date = st.date_input(
+        "📅 Forecast Date",
+        value=date.today(),
+        key="combined_date"
+    )
+
+with common2:
+    selected_horizon = st.selectbox(
+        "🔮 Forecast Horizon",
+        ["Particular Day", "1 Week", "1 Month", "1 Year"],
+        key="combined_horizon"
+    )
+
+
+# ============================================================
+# PRODUCT BASED
+# ============================================================
+
+if forecast_type == "📦 Product Based":
+
+    st.markdown(
+        """
+        <div class="section">
+            <div class="section-title">📦 Product + Store Inputs</div>
+            <div class="section-sub">
+                Select one product and one store, then enter expected future business conditions.
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+
+    c1, c2 = st.columns(2)
+
+    with c1:
+        selected_product = st.selectbox(
+            "📦 Product",
+            products,
+            key="combined_product"
+        )
+
+    available_stores = sorted(
+        history[
+            history[product_col].astype(str) == str(selected_product)
+        ][store_col]
+        .dropna()
+        .astype(str)
+        .unique()
+        .tolist()
+    )
+
+    if not available_stores:
+        available_stores = stores
+
+    with c2:
+        selected_store = st.selectbox(
+            "🏪 Store",
+            available_stores,
+            key="combined_store_for_product"
+        )
+
+    base_row = latest_row_for_product_store(
+        selected_product,
+        selected_store
+    )
+
+    r1 = st.columns(3)
+
+    with r1[0]:
+        price = st.number_input(
+            "💰 Price",
+            min_value=0.0,
+            value=numeric_default(base_row, "Price", 0.0),
+            step=1.0
+        )
+
+    with r1[1]:
+        discount = st.number_input(
+            "🏷️ Discount %",
+            min_value=0.0,
+            max_value=100.0,
+            value=numeric_default(base_row, "Discount_Percentage", 0.0),
+            step=1.0
+        )
+
+    with r1[2]:
+        promotion = st.selectbox(
+            "📢 Promotion",
+            ["No", "Yes"],
+            index=1 if numeric_default(base_row, "Promotion_Flag", 0) >= 1 else 0
+        )
+
+    r2 = st.columns(3)
+
+    with r2[0]:
+        stock = st.number_input(
+            "📦 Stock Availability",
+            min_value=0.0,
+            value=numeric_default(base_row, "Stock_Availability", 0.0),
+            step=1.0
+        )
+
+    with r2[1]:
+        holiday_option = st.selectbox(
+            "🎉 Holiday",
+            ["Auto Detect", "No", "Yes"]
+        )
+
+    with r2[2]:
+        local_event = st.selectbox(
+            "📍 Local Event",
+            ["No", "Yes"],
+            index=1 if numeric_default(base_row, "Local_Event_Flag", 0) >= 1 else 0
+        )
+
+    r3 = st.columns(3)
+
+    with r3[0]:
+        competitor_price = st.number_input(
+            "💰 Competitor Price",
+            min_value=0.0,
+            value=numeric_default(base_row, "Competitor_Price", 0.0),
+            step=1.0
+        )
+
+    with r3[1]:
+        economic_indicator = st.number_input(
+            "📊 Economic Indicator",
+            value=numeric_default(base_row, "Economic_Indicator", 0.0),
+            step=0.1
+        )
+
+    with r3[2]:
+        marketing_spend = st.number_input(
+            "📣 Marketing Spend",
+            min_value=0.0,
+            value=numeric_default(base_row, "Marketing_Spend", 0.0),
+            step=100.0
+        )
+
+    holiday_override = None
+
+    if holiday_option == "Yes":
+        holiday_override = 1
+    elif holiday_option == "No":
+        holiday_override = 0
+
+    manual_values = {
+        "Price": price,
+        "Discount_Percentage": discount,
+        "Promotion_Flag": 1 if promotion == "Yes" else 0,
+        "Stock_Availability": stock,
+        "Local_Event_Flag": 1 if local_event == "Yes" else 0,
+        "Competitor_Price": competitor_price,
+        "Economic_Indicator": economic_indicator,
+        "Marketing_Spend": marketing_spend,
+        "Holiday_Flag": holiday_override
+    }
+
+    if st.button("🚀 Generate Forecast", key="combined_product_button"):
+
+        forecast_date_range = create_forecast_dates(
+            selected_date,
+            selected_horizon
+        )
+
+        with st.spinner("Generating product forecast..."):
+            result = forecast_rows(
+                base_row,
+                forecast_date_range,
+                manual_values
+            )
+
+        st.session_state["combined_result"] = result
+        st.session_state["combined_result_title"] = (
+            f"{selected_product} - {selected_store} Forecast"
         )
 
 
-        average_sales = (
-            result[
-                "Predicted_Sales"
-            ].mean()
+# ============================================================
+# STORE BASED
+# ============================================================
+
+else:
+
+    st.markdown(
+        """
+        <div class="section">
+            <div class="section-title">🏪 Store Forecast</div>
+            <div class="section-sub">
+                Forecast total sales for all products available in the selected store.
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+
+    selected_store = st.selectbox(
+        "🏪 Store",
+        stores,
+        key="combined_store"
+    )
+
+    store_rows = latest_rows_for_store(selected_store)
+
+    s1, s2, s3 = st.columns(3)
+
+    with s1:
+        st.metric(
+            "Products / Profiles",
+            f"{len(store_rows):,}"
+        )
+
+    with s2:
+        if "Units_Sold" in store_rows.columns:
+            st.metric(
+                "Latest Sales",
+                f"{pd.to_numeric(store_rows['Units_Sold'], errors='coerce').fillna(0).sum():,.0f}"
+            )
+
+    with s3:
+        if "Date" in store_rows.columns:
+            st.metric(
+                "Latest Store Data",
+                str(store_rows["Date"].max().date())
+            )
+
+    if st.button("🚀 Generate Forecast", key="combined_store_button"):
+
+        forecast_date_range = create_forecast_dates(
+            selected_date,
+            selected_horizon
+        )
+
+        with st.spinner("Generating store forecast..."):
+            result = forecast_rows(
+                store_rows,
+                forecast_date_range,
+                manual_values=None
+            )
+
+        st.session_state["combined_result"] = result
+        st.session_state["combined_result_title"] = (
+            f"{selected_store} Store Forecast"
         )
 
 
-        highest_sales = (
-            result[
-                "Predicted_Sales"
-            ].max()
+# ============================================================
+# ONE COMMON OUTPUT
+# ============================================================
+
+if "combined_result" in st.session_state:
+
+    st.markdown("---")
+
+    show_results(
+        st.session_state["combined_result"],
+        st.session_state.get(
+            "combined_result_title",
+            "Future Sales Forecast"
         )
+    )
 
 
-        lowest_sales = (
-            result[
-                "Predicted_Sales"
-            ].min()
-        )
+# ============================================================
+# FOOTER
+# ============================================================
 
+st.divider()
 
-        col1, col2 = st.columns(2)
-
-        col3, col4 = st.columns(2)
-
-
-        col1.metric(
-            "📦 Total Sales",
-            f"{total_sales:,} Units"
-        )
-
-
-        col2.metric(
-            "📊 Average Daily Sales",
-            f"{average_sales:.0f} Units"
-        )
-
-
-        col3.metric(
-            "🔥 Highest Daily Sales",
-            f"{highest_sales:,} Units"
-        )
-
-
-        col4.metric(
-            "📉 Lowest Daily Sales",
-            f"{lowest_sales:,} Units"
-        )
-
-
-        # ====================================================
-        # GRAPH
-        # ====================================================
-
-        st.subheader(
-            "📈 Future Sales Forecast"
-        )
-
-
-        chart_data = (
-            result
-            .set_index("Date")[
-                "Predicted_Sales"
-            ]
-        )
-
-
-        st.line_chart(
-            chart_data
-        )
-
-
-        # ====================================================
-        # TABLE
-        # ====================================================
-
-        st.subheader(
-            "📋 Forecast Details"
-        )
-
-
-        st.dataframe(
-            result,
-            use_container_width=True
-        )
+st.caption(
+    "Product forecast uses your selected future Price, Discount, Promotion, Stock, "
+    "Holiday, Local Event, Competitor Price, Economic Indicator and Marketing Spend. "
+    "Store forecast uses the latest saved profile for each product in that store."
+)
