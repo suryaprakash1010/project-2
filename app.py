@@ -22,7 +22,7 @@ st.set_page_config(
     page_title="Sales Forecasting",
     page_icon="🔮",
     layout="wide",
-    initial_sidebar_state="expanded",
+    initial_sidebar_state="collapsed",
 )
 
 
@@ -351,6 +351,19 @@ st.markdown(
     }
 
     /* ---------- Hide Streamlit chrome ---------- */
+
+    section[data-testid="stSidebar"] {
+        display: none !important;
+    }
+
+    button[data-testid="stSidebarCollapsedControl"] {
+        display: none !important;
+    }
+
+    [data-testid="collapsedControl"] {
+        display: none !important;
+    }
+
     #MainMenu {visibility: hidden;}
     footer {visibility: hidden;}
     </style>
@@ -767,33 +780,6 @@ def show_results(result_df, title):
         data=result_df.to_csv(index=False).encode("utf-8"),
         file_name="sales_forecast.csv",
         mime="text/csv"
-    )
-
-
-# ============================================================
-# DASHBOARD SIDEBAR
-# ============================================================
-
-with st.sidebar:
-    st.markdown(
-        """
-        <div class="brand">
-            <div class="brand-title">📈 Sales<br>Forecasting</div>
-            <div class="brand-sub">AI-powered future sales planning</div>
-        </div>
-
-        <div class="side-pill">🏠 &nbsp; Forecast</div>
-        <div class="side-item">📊 &nbsp; Results</div>
-        <div class="side-item">🗄️ &nbsp; Data Insights</div>
-        <div class="side-item">ℹ️ &nbsp; About</div>
-
-        <div class="side-bottom">
-            📊<br>
-            <b>Data Driven</b><br>
-            Better Decisions
-        </div>
-        """,
-        unsafe_allow_html=True
     )
 
 
