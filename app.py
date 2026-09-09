@@ -36,14 +36,14 @@ st.markdown(
     <style>
     /* ---------- GLOBAL ---------- */
     :root {
-        --green: #123b75;
-        --blue: #2563eb;
-        --sky: #0ea5e9;
-        --purple: #8b5cf6;
-        --ink: #172033;
-        --muted: #64748b;
-        --line: #dce7f3;
-        --page: #f6f9fd;
+        --green: #0f6fc5;
+        --blue: #1597e5;
+        --sky: #38bdf8;
+        --purple: #7dd3fc;
+        --ink: #0f2f57;
+        --muted: #5f7692;
+        --line: #cfe8f7;
+        --page: #f5fbff;
         --white: #ffffff;
     }
 
@@ -52,7 +52,7 @@ st.markdown(
     }
 
     .stApp {
-        background: #f6f9fd;
+        background: linear-gradient(180deg, #eef9ff 0%, #f8fcff 42%, #ffffff 100%);
         color: #172033;
     }
 
@@ -65,8 +65,8 @@ st.markdown(
     /* ---------- SIDEBAR ---------- */
     section[data-testid="stSidebar"] {
         background:
-            radial-gradient(circle at 10% 90%, rgba(120,75,220,.28), transparent 30%),
-            linear-gradient(180deg, #0d4b8f 0%, #143c7a 55%, #273c8d 100%);
+            radial-gradient(circle at 10% 90%, rgba(56,189,248,.20), transparent 30%),
+            linear-gradient(180deg, #0f6fc5 0%, #1597e5 55%, #38bdf8 100%);
         border-right: 0;
     }
 
@@ -117,7 +117,7 @@ st.markdown(
         padding: 18px;
         border-radius: 16px;
         text-align: center;
-        background: rgba(5,35,92,.35);
+        background: rgba(255,255,255,.14);
         border: 1px solid rgba(255,255,255,.12);
         line-height: 1.4;
     }
@@ -125,12 +125,12 @@ st.markdown(
     /* ---------- TOP HERO ---------- */
     .hero {
         background:
-            linear-gradient(105deg, #2e72f4 0%, #4f66ee 50%, #9d4ff5 100%);
+            linear-gradient(110deg, #0f6fc5 0%, #1597e5 52%, #38bdf8 100%);
         color: white;
         padding: 27px 30px;
         border-radius: 0 0 22px 22px;
         margin: -18px -10px 22px -10px;
-        box-shadow: 0 14px 35px rgba(72, 88, 220, .18);
+        box-shadow: 0 14px 35px rgba(21,151,229,.18);
         position: relative;
         overflow: hidden;
     }
@@ -169,22 +169,22 @@ st.markdown(
     }
 
     .step-blue {
-        background: linear-gradient(135deg, #edf6ff, #f5f9ff);
+        background: linear-gradient(135deg, #eef9ff, #f8fcff);
     }
 
     .step-purple {
-        background: linear-gradient(135deg, #f7f1ff, #fbf8ff);
-        border-color: #e6d9fb;
+        background: linear-gradient(135deg, #eef9ff, #f8fcff);
+        border-color: #cfe8f7;
     }
 
     .step-green {
-        background: linear-gradient(135deg, #ecfbf6, #f4fffb);
-        border-color: #ccefe2;
+        background: linear-gradient(135deg, #eef9ff, #f8fcff);
+        border-color: #cfe8f7;
     }
 
     .step-orange {
-        background: linear-gradient(135deg, #fff5ed, #fffaf6);
-        border-color: #f5decc;
+        background: linear-gradient(135deg, #eef9ff, #f8fcff);
+        border-color: #cfe8f7;
     }
 
     .step-title {
@@ -206,11 +206,11 @@ st.markdown(
         border: 1px solid #dce7f3;
         border-bottom: 0;
         border-radius: 17px 17px 0 0;
-        background: linear-gradient(135deg, #eef6ff, #f7faff);
+        background: linear-gradient(135deg, #eaf7ff, #f8fcff);
     }
 
     .business-title {
-        color: #17315d;
+        color: #0f4f88;
         font-size: 1.1rem;
         font-weight: 850;
     }
@@ -263,7 +263,7 @@ st.markdown(
     }
 
     div[data-testid="stNumberInput"] button {
-        background: #f3f7fb !important;
+        background: #eef9ff !important;
         color: #172033 !important;
         border-color: #b8c9dc !important;
     }
@@ -282,11 +282,11 @@ st.markdown(
         min-height: 3.35rem;
         border: 0 !important;
         border-radius: 11px;
-        background: linear-gradient(90deg, #1d75e8 0%, #3168ef 55%, #9a36ef 100%);
+        background: linear-gradient(90deg, #0f6fc5 0%, #1597e5 55%, #38bdf8 100%);
         color: white !important;
         font-weight: 900;
         font-size: 1.05rem;
-        box-shadow: 0 10px 22px rgba(76, 72, 220, .22);
+        box-shadow: 0 10px 22px rgba(21,151,229,.22);
     }
 
     .stButton > button:hover {
@@ -298,9 +298,9 @@ st.markdown(
         width: 100%;
         border-radius: 10px;
         font-weight: 800;
-        color: #2563eb !important;
+        color: #1597e5 !important;
         background: white !important;
-        border: 1px solid #aac4e4 !important;
+        border: 1px solid #9fd8f5 !important;
     }
 
     /* ---------- METRICS / RESULTS ---------- */
@@ -330,7 +330,7 @@ st.markdown(
     }
 
     .result-value {
-        color: #17315d;
+        color: #0f4f88;
         font-size: 1.55rem;
         font-weight: 900;
         margin-top: 5px;
@@ -340,6 +340,45 @@ st.markdown(
         color: #64748b;
         font-size: .80rem;
         margin-top: 3px;
+    }
+
+
+    /* ---------- SKY BLUE PROFESSIONAL THEME ---------- */
+    .step-card,
+    .result-card,
+    div[data-testid="stMetric"] {
+        transition: all .20s ease;
+    }
+
+    .step-card:hover,
+    .result-card:hover,
+    div[data-testid="stMetric"]:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 24px rgba(21,151,229,.10);
+    }
+
+    .result-card {
+        background: linear-gradient(135deg, #f5fbff, #ffffff);
+        border-left: 5px solid #38bdf8;
+    }
+
+    div[data-testid="stVerticalBlockBorderWrapper"] {
+        background: rgba(255,255,255,.96);
+        border-color: #cfe8f7 !important;
+    }
+
+    div[data-baseweb="select"] > div:focus-within,
+    div[data-testid="stNumberInput"] input:focus,
+    div[data-testid="stDateInput"] input:focus,
+    .stTextInput input:focus {
+        border-color: #38bdf8 !important;
+        box-shadow: 0 0 0 3px rgba(56,189,248,.13) !important;
+    }
+
+    .stButton > button:hover {
+        filter: brightness(1.04);
+        transform: translateY(-2px);
+        box-shadow: 0 14px 26px rgba(21,151,229,.24);
     }
 
     h1, h2, h3, h4 {
