@@ -36,7 +36,7 @@ st.markdown(
     <style>
     /* ---------- GLOBAL ---------- */
     :root {
-        --navy: #123b75;
+        --green: #123b75;
         --blue: #2563eb;
         --sky: #0ea5e9;
         --purple: #8b5cf6;
