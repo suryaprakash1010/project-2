@@ -964,13 +964,18 @@ if forecast_type == "📦 Product Forecast":
         r1 = st.columns(3, gap="medium")
 
         with r1[0]:
+            # Product / Store change aagumbodhu indha saved price automatically refresh aagum
+            original_price = numeric_default(base_row, "Price", 0.0)
+
             price = st.number_input(
                 "💰 Price (₹)",
                 min_value=0.0,
-                value=numeric_default(base_row, "Price", 0.0),
+                value=original_price,
                 step=1.0,
-                key="dashboard_price"
+                key=f"dashboard_price_{selected_product}_{selected_store}"
             )
+
+            st.caption(f"Original / latest saved price: ₹{original_price:,.2f}")
 
         with r1[1]:
             discount = st.number_input(
